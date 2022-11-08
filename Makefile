@@ -1,6 +1,6 @@
 CXX=clang++
-CXXFLAGS=-ggdb -O2 -W -Wall -Wextra -std=c++20 # -fsanitize=address -fanalyzer
-LDFLAGS=-lgsl -lcblas -lm
+CXXFLAGS= -ggdb -O0 -W -Wall -Wextra -std=c++20 # -fsanitize=address -fanalyzer
+LDFLAGS= -lgsl -lgslcblas -lm
 
 main: main.cpp
 

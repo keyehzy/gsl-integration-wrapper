@@ -4,29 +4,54 @@
 #include <gsl/gsl_math.h>
 
 #include <vector>
+#include <cassert>
+
+enum class GSLFunctionDomain {
+     Euclidean,
+     Stereographic,
+};
 
 template <typename F>
 class GSLFunction : public gsl_function {
 public:
-     GSLFunction(const F &f)
+     GSLFunction(const F &f, GSLFunctionDomain domain)
           :  gsl_function{.function = invoke, .params = this },
-             m_function(f) {}
+             m_function(f),
+             m_domain(domain) {}
 
      operator gsl_function*() {
           return this;
      }
 
+     double operator()(double x) const {
+          return m_function(x);
+     }
+
+     GSLFunctionDomain domain() const { return m_domain; }
+
 private:
      static double invoke(double x, void *params) {
-          return static_cast<GSLFunction*>(params)->m_function(x);
+          GSLFunction* function = static_cast<GSLFunction*>(params);
+          switch(function->domain()) {
+          case GSLFunctionDomain::Euclidean:
+               return function->m_function(x);
+          case GSLFunctionDomain::Stereographic:
+               return function->m_function(1/x - 1);
+          }
      }
 
      const F m_function;
+     GSLFunctionDomain m_domain;
 };
 
 template <typename F>
 GSLFunction<F> make_function(const F& func) {
-     return GSLFunction<F>(func);
+     return GSLFunction<F>(func, GSLFunctionDomain::Euclidean);
+}
+
+template <typename F>
+GSLFunction<F> make_function_inv(const F& func) {
+     return GSLFunction<F>(func, GSLFunctionDomain::Stereographic);
 }
 
 class GSLIntegrationWorkspace {
@@ -133,4 +158,10 @@ double cquad(GSLFunction<F> f, double a, double b,
      gsl_integration_cquad(f, a, b, epsabs = 1e-8, epsrel = 1e-8,
                          w, &result, &abserr, &nevals);
      return result;
+}
+
+template <typename F>
+double cquadi(GSLFunction<F> f, double epsabs = 1e-8, double epsrel = 1e-8) {
+     assert(f.domain() == GSLFunctionDomain::Stereographic);
+     return cquad(f, 0, 1, epsabs, epsrel);
 }
