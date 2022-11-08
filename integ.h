@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_math.h>
@@ -51,7 +51,6 @@ private:
      std::size_t m_size;
      gsl_integration_workspace *m_workspace;
 };
-
 
 enum class QAG_Order {
      K15 = 1,
@@ -131,7 +130,7 @@ double cquad(GSLFunction<F> f, double a, double b,
      double result, abserr;
      std::size_t nevals;
      GSLIntegrationQuadWorkspace w;
-     gsl_integration_qag(f, a, b, epsabs = 1e-8, epsrel = 1e-8, w.size(),
+     gsl_integration_cquad(f, a, b, epsabs = 1e-8, epsrel = 1e-8,
                          w, &result, &abserr, &nevals);
      return result;
 }
